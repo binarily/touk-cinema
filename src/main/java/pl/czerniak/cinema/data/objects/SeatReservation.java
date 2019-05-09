@@ -25,5 +25,9 @@ public class SeatReservation {
         this.SeatColumn = seatColumn;
     }
 
+    public SeatReservation(){
+
+    }
+
 }
 
