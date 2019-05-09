@@ -1,65 +1,74 @@
 package pl.czerniak.cinema.data.controllers;
 
+import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.Resources;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.czerniak.cinema.data.assemblers.RoomResourceAssembler;
 import pl.czerniak.cinema.data.exceptions.NotFoundException;
+import pl.czerniak.cinema.data.objects.Film;
 import pl.czerniak.cinema.data.objects.Room;
 import pl.czerniak.cinema.data.repositories.RoomRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
+public
 class RoomController {
 
     private final RoomRepository repository;
+    private final RoomResourceAssembler assembler;
 
-    RoomController(RoomRepository repository) {
+    RoomController(RoomRepository repository, RoomResourceAssembler assembler) {
         this.repository = repository;
+        this.assembler = assembler;
     }
 
     //LIST
 
-    @GetMapping("/rooms")
-    List<Room> all() {
-        return repository.findAll();
+    @GetMapping(path = "/rooms", produces = {MediaType.APPLICATION_JSON_VALUE})
+    public Resources<Resource<Room>> all() {
+
+        List<Resource<Room>> rooms = repository.findAll().stream()
+                .map(assembler::toResource)
+                .collect(Collectors.toList());
+
+        return new Resources<>(rooms,
+                linkTo(methodOn(RoomController.class).all()).withSelfRel());
     }
 
-    @GetMapping("/rooms/{id}")
-    Room one(@PathVariable Long id) {
-
-        return repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("room", id));
+    @GetMapping(path = "/rooms/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    public Resource<Room> one(@PathVariable Long id) {
+        return assembler.toResource(
+                repository.findById(id)
+                        .orElseThrow(() -> new NotFoundException("room", id)));
     }
 
     //ADD
 
-    @PostMapping("/rooms")
-    Room newRoom(@RequestBody Room newRoom) {
-        return repository.save(newRoom);
-    }
+    @PostMapping(path = "/rooms", produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<Resource<Room>> newRoom(@RequestBody Room room) {
 
-    //REPLACE
+        Room newRoom = repository.save(room);
 
-    @PutMapping("/rooms/{id}")
-    Room replaceFilm(@RequestBody Room newRoom, @PathVariable Long id) {
-
-        return repository.findById(id)
-                .map(room -> {
-                    room.setName(newRoom.getName());
-                    room.setRows(newRoom.getRows());
-                    room.setSeatsInARow(newRoom.getSeatsInARow());
-                    return repository.save(room);
-                })
-                .orElseGet(() -> {
-                    newRoom.setId(id);
-                    return repository.save(newRoom);
-                });
+        return ResponseEntity
+                .created(linkTo(methodOn(RoomController.class).one(newRoom.getId())).toUri())
+                .body(assembler.toResource(newRoom));
     }
 
     //DELETE
 
-    @DeleteMapping("/rooms/{id}")
-    void deleteFilm(@PathVariable Long id) {
-        repository.deleteById(id);
-        //TODO: remove all related screenings
+    @DeleteMapping(path = "/rooms/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity <?> deleteRoom(@PathVariable Long id) {
+        return repository.findById(id).map(p -> {
+                repository.deleteById(id);
+            //TODO: remove all related screenings
+            return ResponseEntity.noContent().build();
+        }).orElseThrow(() -> new NotFoundException("room", id));
     }
 }
