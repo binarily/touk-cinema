@@ -3,7 +3,6 @@ package pl.czerniak.cinema.data.objects;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -17,9 +16,9 @@ public class Screening {
     @ManyToOne
     private Room Room;
     // Screening at...
-    private LocalDateTime Date;
+    private Date Date;
 
-    public Screening(Film film, Room room, LocalDateTime date){
+    public Screening(Film film, Room room, Date date){
         this.Film = film;
         this.Room = room;
         this.Date = date;
