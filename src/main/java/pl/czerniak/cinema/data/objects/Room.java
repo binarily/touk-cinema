@@ -1,4 +1,4 @@
-package pl.czerniak.cinema;
+package pl.czerniak.cinema.data.objects;
 
 import lombok.Data;
 
@@ -8,18 +8,18 @@ import javax.persistence.Id;
 
 @Data
 @Entity
-class Room {
+public class Room {
     private @Id @GeneratedValue Long Id;
     private String Name = "";
     private Integer Rows = 0;
     private Integer SeatsInARow = 0;
 
-    Room(String name, Integer rows, Integer seatsInARow){
+    public Room(String name, Integer rows, Integer seatsInARow){
         this.Name = name;
         this.Rows = rows;
         this.SeatsInARow = seatsInARow;
     }
-    Room(){
+    public Room(){
 
     }
 }

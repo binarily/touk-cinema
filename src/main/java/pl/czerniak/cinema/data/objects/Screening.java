@@ -1,14 +1,14 @@
-package pl.czerniak.cinema;
+package pl.czerniak.cinema.data.objects;
 
 import lombok.Data;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @Entity
-class Screening {
+public class Screening {
     private @Id @GeneratedValue Long Id;
     // Screening of a...
     @ManyToOne
@@ -17,11 +17,14 @@ class Screening {
     @ManyToOne
     private Room Room;
     // Screening at...
-    private Date Date;
+    private LocalDateTime Date;
 
-    Screening(Film film, Room room, Date date){
+    public Screening(Film film, Room room, LocalDateTime date){
         this.Film = film;
         this.Room = room;
         this.Date = date;
+    }
+    public Screening(){
+
     }
 }

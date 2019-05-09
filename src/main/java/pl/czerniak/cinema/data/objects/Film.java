@@ -1,4 +1,4 @@
-package pl.czerniak.cinema;
+package pl.czerniak.cinema.data.objects;
 
 import lombok.Data;
 
@@ -9,15 +9,15 @@ import java.util.Date;
 
 @Data
 @Entity
-class Film {
-    public @Id @GeneratedValue Long Id;
-    public String Title = "";
+public class Film {
+    private @Id @GeneratedValue Long Id;
+    private String Title = "";
 
-    Film(String title){
+    public Film(String title){
         this.Title = title;
     }
 
-    Film(){
+    public Film(){
 
     }
 }
