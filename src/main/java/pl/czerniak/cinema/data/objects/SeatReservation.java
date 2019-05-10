@@ -1,5 +1,6 @@
 package pl.czerniak.cinema.data.objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import pl.czerniak.cinema.data.objects.other.TicketType;
 
@@ -15,6 +16,7 @@ public class SeatReservation implements Comparable<SeatReservation> {
     @ManyToOne
     private Screening screening;
     @ManyToOne
+    @JsonIgnore
     private Reservation reservation;
     private TicketType ticketType;
     private Long seatRow;
