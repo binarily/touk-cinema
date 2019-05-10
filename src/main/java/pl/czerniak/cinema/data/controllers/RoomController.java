@@ -6,7 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.czerniak.cinema.data.assemblers.RoomResourceAssembler;
-import pl.czerniak.cinema.data.exceptions.RoomNotFoundException;
+import pl.czerniak.cinema.data.exceptions.notfound.RoomNotFoundException;
 import pl.czerniak.cinema.data.objects.Room;
 import pl.czerniak.cinema.data.objects.Screening;
 import pl.czerniak.cinema.data.repositories.RoomRepository;

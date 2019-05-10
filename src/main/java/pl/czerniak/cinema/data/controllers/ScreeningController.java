@@ -6,9 +6,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.czerniak.cinema.data.assemblers.ScreeningResourceAssembler;
-import pl.czerniak.cinema.data.exceptions.FilmNotFoundException;
-import pl.czerniak.cinema.data.exceptions.RoomNotFoundException;
-import pl.czerniak.cinema.data.exceptions.ScreeningNotFoundException;
+import pl.czerniak.cinema.data.exceptions.notfound.FilmNotFoundException;
+import pl.czerniak.cinema.data.exceptions.notfound.ReservationNotFoundException;
+import pl.czerniak.cinema.data.exceptions.notfound.RoomNotFoundException;
+import pl.czerniak.cinema.data.exceptions.notfound.ScreeningNotFoundException;
 import pl.czerniak.cinema.data.objects.*;
 import pl.czerniak.cinema.data.repositories.*;
 import pl.czerniak.cinema.data.requests.ScreeningRequest;
@@ -54,6 +55,7 @@ class ScreeningController {
     public Resources<Resource<Screening>> all() {
 
         List<Resource<Screening>> screenings = repository.findAll().stream()
+                .sorted()
                 .map(assembler::toResource)
                 .collect(Collectors.toList());
 
@@ -78,11 +80,12 @@ class ScreeningController {
             dateTime = LocalDateTime.now().plusMinutes(15);
         }
 
-        List<Resource<Screening>> seatReservations = repository.findAllByStartDateAfter(dateTime).stream()
+        List<Resource<Screening>> screenings = repository.findAllByStartDateAfter(dateTime).stream()
+                .sorted()
                 .map(assembler::toResource)
                 .collect(Collectors.toList());
 
-        return new Resources<>(seatReservations,
+        return new Resources<>(screenings,
                 linkTo(methodOn(ScreeningController.class).allStartingFrom(dateTimeString)).withSelfRel());
     }
 
@@ -95,7 +98,7 @@ class ScreeningController {
         Room room = roomRepository.findById(request.getRoomId())
                 .orElseThrow(() -> new RoomNotFoundException(request.getRoomId()));
 
-        Screening screening = new Screening(film, room, request.getDate());
+        Screening screening = new Screening(film, room, request.getStartDate());
         Screening newScreening = repository.save(screening);
         return ResponseEntity
                 .created(linkTo(methodOn(ScreeningController.class).one(newScreening.getId())).toUri())
@@ -113,7 +116,8 @@ class ScreeningController {
                 //Remove the seat
                 seatReservationController.deleteSeatReservation(sr.getId());
                 //Remove any empty reservations
-                Reservation reservation = reservationRepository.getOne(sr.getReservation().getId());
+                Reservation reservation = reservationRepository.findById(sr.getReservation().getId())
+                        .orElseThrow(() -> new ReservationNotFoundException(sr.getReservation().getId()));
                 if(reservation != null && seatReservationRepository.findAllByReservationEquals(reservation).size() == 0){
                     reservationController.deleteReservation(reservation.getId());
                 }

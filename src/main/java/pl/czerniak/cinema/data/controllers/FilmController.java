@@ -6,7 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.czerniak.cinema.data.assemblers.FilmResourceAssembler;
-import pl.czerniak.cinema.data.exceptions.FilmNotFoundException;
+import pl.czerniak.cinema.data.exceptions.notfound.FilmNotFoundException;
 import pl.czerniak.cinema.data.objects.Film;
 import pl.czerniak.cinema.data.objects.Screening;
 import pl.czerniak.cinema.data.repositories.FilmRepository;

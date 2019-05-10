@@ -1,12 +1,16 @@
 package pl.czerniak.cinema.data.objects;
 
 import lombok.Data;
+import pl.czerniak.cinema.data.objects.other.TicketType;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 @Data
 @Entity
-public class SeatReservation {
+public class SeatReservation implements Comparable<SeatReservation> {
     private @Id @GeneratedValue Long id;
     @ManyToOne
     private Screening screening;
@@ -27,6 +31,19 @@ public class SeatReservation {
 
     public SeatReservation(){
 
+    }
+
+    @Override
+    public int compareTo(SeatReservation o) {
+        int screeningCompare = this.getScreening().compareTo(o.getScreening());
+        if(screeningCompare == 0){
+            int rowCompare = this.getSeatRow().compareTo(o.getSeatRow());
+            if(rowCompare == 0){
+                return this.getSeatColumn().compareTo(o.getSeatColumn());
+            }
+            return rowCompare;
+        }
+        return screeningCompare;
     }
 
 }
