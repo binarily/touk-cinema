@@ -6,8 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.czerniak.cinema.data.assemblers.RoomResourceAssembler;
-import pl.czerniak.cinema.data.exceptions.NotFoundException;
-import pl.czerniak.cinema.data.objects.Film;
+import pl.czerniak.cinema.data.exceptions.RoomNotFoundException;
 import pl.czerniak.cinema.data.objects.Room;
 import pl.czerniak.cinema.data.repositories.RoomRepository;
 
@@ -46,7 +45,7 @@ class RoomController {
     public Resource<Room> one(@PathVariable Long id) {
         return assembler.toResource(
                 repository.findById(id)
-                        .orElseThrow(() -> new NotFoundException("room", id)));
+                        .orElseThrow(() -> new RoomNotFoundException(id)));
     }
 
     //ADD
@@ -69,6 +68,6 @@ class RoomController {
                 repository.deleteById(id);
             //TODO: remove all related screenings
             return ResponseEntity.noContent().build();
-        }).orElseThrow(() -> new NotFoundException("room", id));
+        }).orElseThrow(() -> new RoomNotFoundException(id));
     }
 }

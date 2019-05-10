@@ -6,15 +6,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.czerniak.cinema.data.assemblers.ReservationResourceAssembler;
-import pl.czerniak.cinema.data.exceptions.NotFoundException;
+import pl.czerniak.cinema.data.exceptions.ReservationNotFoundException;
+import pl.czerniak.cinema.data.exceptions.ScreeningNotFoundException;
 import pl.czerniak.cinema.data.objects.Reservation;
 import pl.czerniak.cinema.data.objects.Screening;
+import pl.czerniak.cinema.data.objects.Seat;
 import pl.czerniak.cinema.data.objects.SeatReservation;
 import pl.czerniak.cinema.data.repositories.ReservationRepository;
 import pl.czerniak.cinema.data.repositories.ScreeningRepository;
 import pl.czerniak.cinema.data.repositories.SeatReservationRepository;
 import pl.czerniak.cinema.data.requests.ReservationRequest;
-import pl.czerniak.cinema.data.objects.Seat;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,14 +58,15 @@ public class ReservationController {
     public Resource<Reservation> one(@PathVariable Long id) {
         return assembler.toResource(
                 repository.findById(id)
-                        .orElseThrow(() -> new NotFoundException("reservation", id)));
+                        .orElseThrow(() -> new ReservationNotFoundException(id)));
     }
 
     //ADD
 
     @PostMapping(path = "/reservations", produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<Resource<Reservation>> newReservation(@RequestBody ReservationRequest request) {
-        Screening screening = screeningRepository.getOne(request.getScreeningId());
+        Screening screening = screeningRepository.findById(request.getScreeningId())
+                .orElseThrow(() -> new ScreeningNotFoundException(request.getScreeningId()));
         //TODO: check if more than 15 minutes to screening start
 
         Reservation reservation = new Reservation(request.getName(), request.getSurname());
@@ -88,6 +90,6 @@ public class ReservationController {
             repository.deleteById(id);
             //TODO: remove all related seat reservations
             return ResponseEntity.noContent().build();
-        }).orElseThrow(() -> new NotFoundException("reservation", id));
+        }).orElseThrow(() -> new ReservationNotFoundException(id));
     }
 }

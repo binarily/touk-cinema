@@ -6,8 +6,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.czerniak.cinema.data.assemblers.SeatReservationResourceAssembler;
-import pl.czerniak.cinema.data.exceptions.NotFoundException;
-import pl.czerniak.cinema.data.objects.Film;
+import pl.czerniak.cinema.data.exceptions.ReservationNotFoundException;
+import pl.czerniak.cinema.data.exceptions.ScreeningNotFoundException;
+import pl.czerniak.cinema.data.exceptions.SeatReservationNotFoundException;
 import pl.czerniak.cinema.data.objects.Reservation;
 import pl.czerniak.cinema.data.objects.Screening;
 import pl.czerniak.cinema.data.objects.SeatReservation;
@@ -59,14 +60,14 @@ class SeatReservationController {
     public Resource<SeatReservation> one(@PathVariable Long id) {
         return assembler.toResource(
                 repository.findById(id)
-                        .orElseThrow(() -> new NotFoundException("seat reservation", id)));
+                        .orElseThrow(() -> new SeatReservationNotFoundException(id)));
     }
 
     // All from a single reservation
     @GetMapping(path="/reservations/{reservationId}/seats", produces = {MediaType.APPLICATION_JSON_VALUE})
     public Resources<Resource<SeatReservation>> allFromReservation(@PathVariable Long reservationId){
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new NotFoundException("reservation", reservationId));
+                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
         List<Resource<SeatReservation>> seatReservations = repository.findAllByReservationEquals(reservation).stream()
                 .map(assembler::toResource)
                 .collect(Collectors.toList());
@@ -79,7 +80,7 @@ class SeatReservationController {
     @GetMapping(path="/screenings/{screeningId}/seats", produces = {MediaType.APPLICATION_JSON_VALUE})
     public Resources<Resource<SeatReservation>> allFromScreening(@PathVariable Long screeningId){
         Screening screening = screeningRepository.findById(screeningId)
-                .orElseThrow(() -> new NotFoundException("screening", screeningId));
+                .orElseThrow(() -> new ScreeningNotFoundException(screeningId));
         List<Resource<SeatReservation>> seatReservations = repository.findAllByScreeningEquals(screening).stream()
                 .map(assembler::toResource)
                 .collect(Collectors.toList());
@@ -93,9 +94,9 @@ class SeatReservationController {
     @PostMapping(path="/seat_reservations", produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<Resource<SeatReservation>> newSeatReservation(@RequestBody SeatReservationRequest request) {
         Screening screening = screeningRepository.findById(request.getScreeningId())
-                .orElseThrow(() -> new NotFoundException("screening", request.getScreeningId()));
+                .orElseThrow(() -> new ScreeningNotFoundException(request.getScreeningId()));
         Reservation reservation = reservationRepository.findById(request.getReservationId())
-                .orElseThrow(() -> new NotFoundException("reservation", request.getReservationId()));
+                .orElseThrow(() -> new ReservationNotFoundException(request.getReservationId()));
 
         SeatReservation seatReservation = new SeatReservation(screening, reservation,
                 request.getTicketType(), request.getRow(),
@@ -113,6 +114,6 @@ class SeatReservationController {
         return repository.findById(id).map(p -> {
             repository.deleteById(id);
             return ResponseEntity.noContent().build();
-        }).orElseThrow(() -> new NotFoundException("seat reservation", id));
+        }).orElseThrow(() -> new SeatReservationNotFoundException(id));
     }
 }

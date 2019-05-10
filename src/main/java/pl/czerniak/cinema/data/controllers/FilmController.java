@@ -6,7 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.czerniak.cinema.data.assemblers.FilmResourceAssembler;
-import pl.czerniak.cinema.data.exceptions.NotFoundException;
+import pl.czerniak.cinema.data.exceptions.FilmNotFoundException;
 import pl.czerniak.cinema.data.objects.Film;
 import pl.czerniak.cinema.data.repositories.FilmRepository;
 
@@ -47,7 +47,7 @@ class FilmController {
     public Resource<Film> one(@PathVariable Long id) {
         return assembler.toResource(
                 repository.findById(id)
-                        .orElseThrow(() -> new NotFoundException("film", id)));
+                        .orElseThrow(() -> new FilmNotFoundException(id)));
     }
 
     //ADD
@@ -69,6 +69,6 @@ class FilmController {
             repository.deleteById(id);
             //TODO: remove all related screenings
             return ResponseEntity.noContent().build();
-        }).orElseThrow(() -> new NotFoundException("film", id));
+        }).orElseThrow(() -> new FilmNotFoundException(id));
     }
 }
