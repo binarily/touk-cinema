@@ -79,7 +79,7 @@ public class ReservationController {
             throw new TimeNotAllowedException();
         }
         //check if reservation reserves at least a single seat
-        if(request.getSeats().length == 0){
+        if(request.getSeats() == null || request.getSeats().length == 0){
             throw new EmptyReservationNotAllowedException();
         }
         //check if name and surname match pattern
