@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import pl.czerniak.cinema.data.assemblers.FilmResourceAssembler;
 import pl.czerniak.cinema.data.exceptions.FilmNotFoundException;
 import pl.czerniak.cinema.data.objects.Film;
+import pl.czerniak.cinema.data.objects.Screening;
 import pl.czerniak.cinema.data.repositories.FilmRepository;
+import pl.czerniak.cinema.data.repositories.ScreeningRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,10 +23,15 @@ public
 class FilmController {
 
     private final FilmRepository repository;
+    private final ScreeningRepository screeningRepository;
+    private final ScreeningController screeningController;
     private final FilmResourceAssembler assembler;
 
-    FilmController(FilmRepository repository, FilmResourceAssembler assembler) {
+    FilmController(FilmRepository repository, ScreeningRepository screeningRepository,
+                   ScreeningController screeningController, FilmResourceAssembler assembler) {
         this.repository = repository;
+        this.screeningRepository = screeningRepository;
+        this.screeningController = screeningController;
         this.assembler = assembler;
     }
 
@@ -66,8 +73,12 @@ class FilmController {
     @DeleteMapping(path="/films/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity <?> deleteFilm(@PathVariable Long id) {
         return repository.findById(id).map(p -> {
+            // remove all related screenings
+            List<Screening> screenings = screeningRepository.findAllByFilmEquals(p);
+            for(Screening s : screenings){
+                screeningController.deleteScreening(s.getId());
+            }
             repository.deleteById(id);
-            //TODO: remove all related screenings
             return ResponseEntity.noContent().build();
         }).orElseThrow(() -> new FilmNotFoundException(id));
     }

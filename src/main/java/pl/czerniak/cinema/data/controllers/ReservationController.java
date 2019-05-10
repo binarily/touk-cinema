@@ -29,13 +29,16 @@ public class ReservationController {
     private final ReservationRepository repository;
     private final ScreeningRepository screeningRepository;
     private final SeatReservationRepository seatReservationRepository;
+    private final SeatReservationController seatReservationController;
     private final ReservationResourceAssembler assembler;
 
     ReservationController(ReservationRepository repository, ScreeningRepository screeningRepository,
-                          SeatReservationRepository seatReservationRepository, ReservationResourceAssembler assembler) {
+                          SeatReservationRepository seatReservationRepository, SeatReservationController seatReservationController,
+                          ReservationResourceAssembler assembler) {
         this.repository = repository;
         this.screeningRepository = screeningRepository;
         this.seatReservationRepository = seatReservationRepository;
+        this.seatReservationController = seatReservationController;
         this.assembler = assembler;
     }
 
@@ -87,8 +90,12 @@ public class ReservationController {
     @DeleteMapping(path = "/reservations/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity <?> deleteReservation(@PathVariable Long id) {
         return repository.findById(id).map(p -> {
+            //remove all related seat reservations
+            List<SeatReservation> seatReservations = seatReservationRepository.findAllByReservationEquals(p);
+            for(SeatReservation sr : seatReservations){
+                seatReservationController.deleteSeatReservation(sr.getId());
+            }
             repository.deleteById(id);
-            //TODO: remove all related seat reservations
             return ResponseEntity.noContent().build();
         }).orElseThrow(() -> new ReservationNotFoundException(id));
     }

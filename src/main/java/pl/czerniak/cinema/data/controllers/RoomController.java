@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import pl.czerniak.cinema.data.assemblers.RoomResourceAssembler;
 import pl.czerniak.cinema.data.exceptions.RoomNotFoundException;
 import pl.czerniak.cinema.data.objects.Room;
+import pl.czerniak.cinema.data.objects.Screening;
 import pl.czerniak.cinema.data.repositories.RoomRepository;
+import pl.czerniak.cinema.data.repositories.ScreeningRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,10 +23,15 @@ public
 class RoomController {
 
     private final RoomRepository repository;
+    private final ScreeningRepository screeningRepository;
+    private final ScreeningController screeningController;
     private final RoomResourceAssembler assembler;
 
-    RoomController(RoomRepository repository, RoomResourceAssembler assembler) {
+    RoomController(RoomRepository repository, ScreeningRepository screeningRepository,
+                   ScreeningController screeningController, RoomResourceAssembler assembler) {
         this.repository = repository;
+        this.screeningRepository = screeningRepository;
+        this.screeningController = screeningController;
         this.assembler = assembler;
     }
 
@@ -65,8 +72,12 @@ class RoomController {
     @DeleteMapping(path = "/rooms/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity <?> deleteRoom(@PathVariable Long id) {
         return repository.findById(id).map(p -> {
-                repository.deleteById(id);
-            //TODO: remove all related screenings
+            //remove all related screenings
+            List<Screening> screenings = screeningRepository.findAllByRoomEquals(p);
+            for(Screening s: screenings){
+                screeningController.deleteScreening(s.getId());
+            }
+            repository.deleteById(id);
             return ResponseEntity.noContent().build();
         }).orElseThrow(() -> new RoomNotFoundException(id));
     }

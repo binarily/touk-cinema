@@ -9,12 +9,8 @@ import pl.czerniak.cinema.data.assemblers.ScreeningResourceAssembler;
 import pl.czerniak.cinema.data.exceptions.FilmNotFoundException;
 import pl.czerniak.cinema.data.exceptions.RoomNotFoundException;
 import pl.czerniak.cinema.data.exceptions.ScreeningNotFoundException;
-import pl.czerniak.cinema.data.objects.Film;
-import pl.czerniak.cinema.data.objects.Room;
-import pl.czerniak.cinema.data.objects.Screening;
-import pl.czerniak.cinema.data.repositories.FilmRepository;
-import pl.czerniak.cinema.data.repositories.RoomRepository;
-import pl.czerniak.cinema.data.repositories.ScreeningRepository;
+import pl.czerniak.cinema.data.objects.*;
+import pl.czerniak.cinema.data.repositories.*;
 import pl.czerniak.cinema.data.requests.ScreeningRequest;
 
 import java.time.LocalDateTime;
@@ -31,13 +27,23 @@ class ScreeningController {
     private final ScreeningRepository repository;
     private final FilmRepository filmRepository;
     private final RoomRepository roomRepository;
+    private final ReservationRepository reservationRepository;
+    private final SeatReservationRepository seatReservationRepository;
+    private final ReservationController reservationController;
+    private final SeatReservationController seatReservationController;
     private final ScreeningResourceAssembler assembler;
 
     ScreeningController(ScreeningRepository repository, FilmRepository filmRepository,
-                          RoomRepository roomRepository, ScreeningResourceAssembler assembler) {
+                        RoomRepository roomRepository,  ReservationRepository reservationRepository,
+                        SeatReservationRepository seatReservationRepository, ReservationController reservationController,
+                        SeatReservationController seatReservationController, ScreeningResourceAssembler assembler) {
         this.repository = repository;
         this.filmRepository = filmRepository;
         this.roomRepository = roomRepository;
+        this.reservationRepository = reservationRepository;
+        this.seatReservationRepository = seatReservationRepository;
+        this.reservationController = reservationController;
+        this.seatReservationController = seatReservationController;
         this.assembler = assembler;
     }
 
@@ -101,8 +107,18 @@ class ScreeningController {
     @DeleteMapping(path = "/screenings/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity <?> deleteScreening(@PathVariable Long id) {
         return repository.findById(id).map(p -> {
+            //remove all related seat reservations, reservations
+            List<SeatReservation> seatReservations = seatReservationRepository.findAllByScreeningEquals(p);
+            for(SeatReservation sr : seatReservations){
+                //Remove the seat
+                seatReservationController.deleteSeatReservation(sr.getId());
+                //Remove any empty reservations
+                Reservation reservation = reservationRepository.getOne(sr.getReservation().getId());
+                if(reservation != null && seatReservationRepository.findAllByReservationEquals(reservation).size() == 0){
+                    reservationController.deleteReservation(reservation.getId());
+                }
+            }
             repository.deleteById(id);
-            //TODO: remove all related seat reservations, reservations
             return ResponseEntity.noContent().build();
         }).orElseThrow(() -> new ScreeningNotFoundException(id));
     }
