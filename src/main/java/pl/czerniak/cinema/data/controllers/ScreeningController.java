@@ -15,6 +15,7 @@ import pl.czerniak.cinema.data.repositories.RoomRepository;
 import pl.czerniak.cinema.data.repositories.ScreeningRepository;
 import pl.czerniak.cinema.data.requests.ScreeningRequest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +41,7 @@ class ScreeningController {
 
     //LIST
 
+    // All
     @GetMapping(path = "/screenings", produces = {MediaType.APPLICATION_JSON_VALUE})
     public Resources<Resource<Screening>> all() {
 
@@ -57,7 +59,23 @@ class ScreeningController {
     public Resource<Screening> one(@PathVariable Long id) {
         return assembler.toResource(
                 repository.findById(id)
-                        .orElseThrow(() -> new NotFoundException("screenings", id)));
+                        .orElseThrow(() -> new NotFoundException("screening", id)));
+    }
+
+    // All screenings possible to book after a given hour
+    @GetMapping(path="/screenings/after/{dateTimeString}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    public Resources<Resource<Screening>> allStartingFrom(@PathVariable String dateTimeString){
+        LocalDateTime dateTime = LocalDateTime.parse(dateTimeString);
+        if(dateTime.isBefore(LocalDateTime.now().plusMinutes(15))){
+            dateTime = LocalDateTime.now().plusMinutes(15);
+        }
+
+        List<Resource<Screening>> seatReservations = repository.findAllByStartDateAfter(dateTime).stream()
+                .map(assembler::toResource)
+                .collect(Collectors.toList());
+
+        return new Resources<>(seatReservations,
+                linkTo(methodOn(ScreeningController.class).allStartingFrom(dateTimeString)).withSelfRel());
     }
 
     //ADD

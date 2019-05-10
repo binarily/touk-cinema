@@ -1,7 +1,7 @@
 package pl.czerniak.cinema.data.requests;
 
 import lombok.Data;
-import pl.czerniak.cinema.data.objects.TicketType;
+import pl.czerniak.cinema.data.objects.Seat;
 
 @Data
 public class ReservationRequest {

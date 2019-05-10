@@ -1,4 +1,4 @@
-package pl.czerniak.cinema.data.requests;
+package pl.czerniak.cinema.data.objects;
 
 import lombok.Data;
 import pl.czerniak.cinema.data.objects.TicketType;
@@ -7,5 +7,5 @@ import pl.czerniak.cinema.data.objects.TicketType;
 public class Seat{
     private Long Row;
     private Long Column;
-    private pl.czerniak.cinema.data.objects.TicketType TicketType;
+    private TicketType TicketType;
 }

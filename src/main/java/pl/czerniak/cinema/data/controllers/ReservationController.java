@@ -14,7 +14,7 @@ import pl.czerniak.cinema.data.repositories.ReservationRepository;
 import pl.czerniak.cinema.data.repositories.ScreeningRepository;
 import pl.czerniak.cinema.data.repositories.SeatReservationRepository;
 import pl.czerniak.cinema.data.requests.ReservationRequest;
-import pl.czerniak.cinema.data.requests.Seat;
+import pl.czerniak.cinema.data.objects.Seat;
 
 import java.util.List;
 import java.util.stream.Collectors;
